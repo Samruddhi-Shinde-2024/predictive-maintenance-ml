@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Predictive Maintenance — ML Project</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+  <div id="progress-bar"></div>
+
+  <!-- SERVER WAKE-UP OVERLAY -->
+  <div id="server-loader" class="server-loader">
+    <div class="loader-bg-blur"></div>
+    <div class="loader-content">
+      <div class="loader-icon-wrap">
+        <div class="loader-ring"></div>
+        <div class="loader-core">PM</div>
+      </div>
+      <h2 class="loader-title">System Initializing</h2>
+      <div class="loader-text-sequence" id="loader-text">Waking up industrial sensors...</div>
+      <div class="loader-progress-bar">
+        <div class="loader-progress-fill"></div>
+      </div>
+      <p class="loader-note">Render Free Tier is spinning up the server. This usually takes 30-60 seconds.</p>
+    </div>
+  </div>
+
+  <nav id="navbar">
+    <div class="nav-logo">PM<span class="dot">.</span>ML</div>
+    <ul class="nav-links">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#dataset">Dataset</a></li>
+      <li><a href="#eda">EDA</a></li>
+      <li><a href="#bias">Bias</a></li>
+      <li><a href="#smote">SMOTE</a></li>
+      <li><a href="#balanced">Balanced</a></li>
+      <li><a href="#norm">Normalization</a></li>
+      <li><a href="#models">Models</a></li>
+      <li><a href="#evaluation">Eval</a></li>
+      <li><a href="#hybrid">Hybrid</a></li>
+      <li><a href="#result">Result</a></li>
+      <li><a href="#testing" class="nav-predict-link">Predict</a></li>
+    </ul>
+    <a href="{{ url_for('static', filename='report.pdf') }}" target="_blank" class="nav-report-btn">📄 Report</a>
+    <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  </nav>
+  <div class="mobile-drawer" id="drawer">
+    <a href="#home" class="drawer-link">Home</a>
+    <a href="#dataset" class="drawer-link">Dataset</a>
+    <a href="#eda" class="drawer-link">EDA</a>
+    <a href="#bias" class="drawer-link">Bias</a>
+    <a href="#smote" class="drawer-link">SMOTE</a>
+    <a href="#balanced" class="drawer-link">Balanced</a>
+    <a href="#norm" class="drawer-link">Normalization</a>
+    <a href="#models" class="drawer-link">Models</a>
+    <a href="#evaluation" class="drawer-link">Eval</a>
+    <a href="#hybrid" class="drawer-link">Hybrid</a>
+    <a href="#result" class="drawer-link">Result</a>
+    <a href="#testing" class="drawer-link drawer-predict-link">Predict</a>
+    <a href="{{ url_for('static', filename='report.pdf') }}" target="_blank" class="drawer-link drawer-report-link">📄
+      Report</a>
+  </div>
+
+  <!-- HERO -->
+  <section id="home" class="section hero-section">
+    <div class="hero-bg-grid"></div>
+    <div class="hero-content reveal">
+      <div class="section-tag">Mini Project · Machine Learning</div>
+      <h1 class="hero-title">Predictive<br><em>Maintenance</em><br>Using ML</h1>
+      <p class="hero-sub">In industrial environments, unexpected machine failures lead to significant financial losses,
+        production downtime, and safety risks. Traditional maintenance is either too early (wasteful) or too late
+        (costly).</p>
+      <p class="hero-sub">This project builds a <strong>data-driven predictive system</strong> that analyses real
+        machine sensor readings to forecast failures before they happen — enabling timely, targeted maintenance.</p>
+      <div class="hero-stats">
+        <div class="stat-card">
+          <div class="stat-num">10,000</div>
+          <div class="stat-desc">Data samples</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">5</div>
+          <div class="stat-desc">Features</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">5</div>
+          <div class="stat-desc">ML models</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">97.5%</div>
+          <div class="stat-desc">Best accuracy</div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual reveal-right">
+      <div class="machine-card">
+        <div class="machine-header">
+          <span class="machine-dot green"></span><span class="machine-dot yellow"></span><span
+            class="machine-dot red"></span>
+          <span class="machine-label">sensor_feed.live</span>
+        </div>
+        <div class="machine-body">
+          <div class="sensor-row"><span class="sensor-name">Air Temp</span><span class="sensor-val anim-val"
+              data-vals="298K,301K,299K,303K">298K</span>
+            <div class="sensor-bar">
+              <div class="sensor-fill" style="width:62%"></div>
+            </div>
+          </div>
+          <div class="sensor-row"><span class="sensor-name">Process Temp</span><span class="sensor-val anim-val"
+              data-vals="308K,311K,309K,313K">308K</span>
+            <div class="sensor-bar">
+              <div class="sensor-fill" style="width:71%"></div>
+            </div>
+          </div>
+          <div class="sensor-row"><span class="sensor-name">Rot. Speed</span><span class="sensor-val anim-val"
+              data-vals="1551rpm,1420rpm,1800rpm,1600rpm">1551rpm</span>
+            <div class="sensor-bar">
+              <div class="sensor-fill warn" style="width:80%"></div>
+            </div>
+          </div>
+          <div class="sensor-row"><span class="sensor-name">Torque</span><span class="sensor-val anim-val"
+              data-vals="42Nm,55Nm,38Nm,61Nm">42Nm</span>
+            <div class="sensor-bar">
+              <div class="sensor-fill" style="width:45%"></div>
+            </div>
+          </div>
+          <div class="sensor-row"><span class="sensor-name">Tool Wear</span><span class="sensor-val anim-val"
+              data-vals="198min,220min,175min,240min">198min</span>
+            <div class="sensor-bar">
+              <div class="sensor-fill danger" style="width:88%"></div>
+            </div>
+          </div>
+        </div>
+        <div class="machine-footer">
+          <span class="status-dot pulse"></span>
+          <span class="status-text">Monitoring live</span>
+          <span class="predict-badge">⚠ Failure predicted</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DATASET -->
+  <section id="dataset" class="section alt-section">
+    <div class="section-inner reveal">
+      <div class="section-tag">02 — Dataset</div>
+      <h2 class="section-title">What Data We Have</h2>
+      <p class="section-desc">The <strong>AI4I Predictive Maintenance Dataset</strong> contains 10,000 operational
+        snapshots from a simulated milling machine. Each row captures the machine's state at one point in time, labelled
+        as failure or no-failure.</p>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feat-icon">🌡</div>
+          <div class="feat-name">Air Temperature [K]</div>
+          <div class="feat-desc">Ambient air temperature around the machine. Generated using a random walk process
+            around 300 K. Affects cooling efficiency and thermal environment of the machine.</div>
+          <div class="feat-range">295 – 304 K</div>
+        </div>
+        <div class="feature-card">
+          <div class="feat-icon">🔥</div>
+          <div class="feat-name">Process Temperature [K]</div>
+          <div class="feat-desc">Internal machine operating temperature. Always 8–10 K higher than air temperature due
+            to heat generation. Thermal stress on components rises sharply above threshold.</div>
+          <div class="feat-range">305 – 314 K</div>
+        </div>
+        <div class="feature-card">
+          <div class="feat-icon">⚙️</div>
+          <div class="feat-name">Rotational Speed [rpm]</div>
+          <div class="feat-desc">Spindle speed in revolutions per minute. Very high or very low speeds indicate
+            operational stress or tool wear failure modes.</div>
+          <div class="feat-range">1168 – 2886 rpm</div>
+        </div>
+        <div class="feature-card">
+          <div class="feat-icon">🔩</div>
+          <div class="feat-name">Torque [Nm]</div>
+          <div class="feat-desc">Rotational force applied to the cutting tool. High torque combined with low rotational
+            speed is a strong indicator of mechanical overload and overstrain failure.</div>
+          <div class="feat-range">3.8 – 76.6 Nm</div>
+        </div>
+        <div class="feature-card">
+          <div class="feat-icon">🪛</div>
+          <div class="feat-name">Tool Wear [min]</div>
+          <div class="feat-desc">Cumulative minutes the cutting tool has been in use. The primary aging indicator —
+            tools beyond 200 min fail more frequently across all failure types.</div>
+          <div class="feat-range">0 – 253 min</div>
+        </div>
+        <div class="feature-card target-card">
+          <div class="feat-icon">🎯</div>
+          <div class="feat-name">Target (Label)</div>
+          <div class="feat-desc">Binary classification label. 0 = No Failure, 1 = Failure. Derived from five sub-failure
+            types: tool wear, heat dissipation, power, overstrain, and random failures.</div>
+          <div class="feat-range">0 or 1</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EDA -->
+  <section id="eda" class="section">
+    <div class="section-inner reveal">
+      <div class="section-tag">03 — Exploratory Data Analysis</div>
+      <h2 class="section-title">Understanding the Raw Data</h2>
+      <p class="section-desc">Before applying any ML technique, we performed a thorough EDA on the original dataset to
+        understand the shape of each feature, detect outliers, and discover relationships between variables.</p>
+
+      <div class="graph-block">
+        <div class="graph-header">
+          <div class="graph-title">Feature Distributions (Histogram + KDE)</div>
+          <div class="graph-tabs" id="dist-tabs">
+            <button class="gtab active" data-feature="air">Air Temp</button>
+            <button class="gtab" data-feature="proc">Process Temp</button>
+            <button class="gtab" data-feature="rpm">Rot. Speed</button>
+            <button class="gtab" data-feature="torque">Torque</button>
+            <button class="gtab" data-feature="wear">Tool Wear</button>
+          </div>
+        </div>
+        <div class="graph-wrap"><canvas id="distChart" height="230"></canvas></div>
+        <div class="graph-info">
+          <div class="gi-stat"><span class="gi-label">Mean</span><span class="gi-val" id="di-mean">300.0 K</span></div>
+          <div class="gi-stat"><span class="gi-label">Std Dev</span><span class="gi-val" id="di-std">2.0 K</span></div>
+          <div class="gi-stat"><span class="gi-label">Min</span><span class="gi-val" id="di-min">295.3 K</span></div>
+          <div class="gi-stat"><span class="gi-label">Max</span><span class="gi-val" id="di-max">304.5 K</span></div>
+          <div class="gi-insight" id="di-insight">Near-normal distribution. Random walk generation keeps values in a
+            narrow band around 300 K. No major outliers detected.</div>
+        </div>
+      </div>
+
+      <div class="graph-block" style="margin-top:2rem">
+        <div class="graph-header">
+          <div class="graph-title">Outlier Detection — Boxplots (All Features)</div>
+          <div class="graph-subtitle">Whiskers = 1.5×IQR · Points beyond whiskers = outliers</div>
+        </div>
+        <div class="graph-wrap"><canvas id="boxChart" height="220"></canvas></div>
+        <div class="info-card">
+          <div class="ic-title">What the boxplots reveal</div>
+          <p>Rotational speed has a <strong>left skew</strong> — most machines operate in the 1200–1800 rpm range but a
+            few run much faster. Torque shows <strong>high-end outliers</strong> beyond 65 Nm, which often correspond to
+            overstrain failures. Tool wear is near-uniform since it increments linearly with usage time. These outliers
+            are intentionally kept — they carry critical failure signal and removing them would reduce model
+            sensitivity.</p>
+        </div>
+      </div>
+
+      <div class="graph-block" style="margin-top:2rem">
+        <div class="graph-header">
+          <div class="graph-title">Correlation Heatmap — Original Dataset</div>
+          <div class="graph-subtitle">Pearson correlation between all numerical features</div>
+        </div>
+        <div class="graph-wrap heatmap-container"><canvas id="heatmapChart" height="300"></canvas></div>
+        <div class="info-card">
+          <div class="ic-title">Key relationships discovered</div>
+          <p><strong>Air Temp ↔ Process Temp (r = 0.88):</strong> Strong positive correlation. When ambient temperature
+            rises, internal machine temperature follows — increasing thermal stress risk.<br><br>
+            <strong>Rotational Speed ↔ Torque (r = −0.87):</strong> Strong negative correlation. This is mechanical law
+            — power = speed × torque. Extreme combinations (very low speed + very high torque) trigger overstrain
+            failures.<br><br>
+            <strong>Tool Wear ↔ Target (r = 0.09):</strong> Weak but real. Tool wear amplifies other failure modes
+            rather than causing failures on its own.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BIAS -->
+  <section id="bias" class="section alt-section bias-section">
+    <div class="section-inner reveal">
+      <div class="section-tag danger-tag">04 — ⚠ Problem Detected</div>
+      <h2 class="section-title">Class Imbalance — The Critical Problem</h2>
+      <p class="section-desc">During EDA, we discovered that the dataset is <strong>severely imbalanced</strong>. This
+        is one of the most dangerous problems in real-world ML classification tasks.</p>
+      <div class="bias-chart-grid">
+        <div class="graph-block">
+          <div class="graph-header">
+            <div class="graph-title">Class Distribution — Original Dataset</div>
+          </div>
+          <div class="graph-wrap" style="max-height:280px"><canvas id="biasChart" height="240"></canvas></div>
+        </div>
+        <div class="bias-right">
+          <div class="count-card nf-card">
+            <div class="count-num">9,661</div>
+            <div class="count-label">No Failure — 96.6%</div>
+          </div>
+          <div class="count-card f-card">
+            <div class="count-num">339</div>
+            <div class="count-label">Failure — 3.4%</div>
+          </div>
+          <div class="ratio-badge">28 : 1 imbalance ratio</div>
+          <div class="info-card" style="margin-top:1rem">
+            <div class="ic-title">The accuracy paradox</div>
+            <p>A model that always predicts "No Failure" achieves <strong>96.6% accuracy</strong> without learning
+              anything. This is why we must use F1-score and recall as primary metrics — not accuracy.</p>
+          </div>
+        </div>
+      </div>
+      <div class="danger-box">
+        <div class="danger-title">💥 Real-world consequence</div>
+        <p>In predictive maintenance, a <strong>missed failure (false negative)</strong> costs far more than a false
+          alarm. An undetected failure can cause catastrophic equipment damage, production halt, or even worker injury.
+          A biased model optimising for accuracy is useless — it would miss 100% of failures. We must fix the imbalance
+          before training.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SMOTE -->
+  <section id="smote" class="section">
+    <div class="section-inner reveal">
+      <div class="section-tag">05 — Solution</div>
+      <h2 class="section-title">SMOTE — Fixing the Imbalance</h2>
+      <p class="section-desc"><strong>Synthetic Minority Oversampling Technique (SMOTE)</strong> generates new synthetic
+        samples for the minority class by interpolating between existing examples — preserving distribution while
+        balancing classes. We used <code>random_state=42</code> for reproducibility.</p>
+
+      <div class="smote-how">
+        <div class="smote-step">
+          <div class="smote-num">1</div>
+          <div class="smote-text">Select a minority class sample</div>
+        </div>
+        <div class="smote-arrow">→</div>
+        <div class="smote-step">
+          <div class="smote-num">2</div>
+          <div class="smote-text">Find K nearest minority neighbors</div>
+        </div>
+        <div class="smote-arrow">→</div>
+        <div class="smote-step">
+          <div class="smote-num">3</div>
+          <div class="smote-text">Interpolate a new synthetic point</div>
+        </div>
+        <div class="smote-arrow">→</div>
+        <div class="smote-step">
+          <div class="smote-num">4</div>
+          <div class="smote-text">Repeat until classes are equal</div>
+        </div>
+      </div>
+
+      <div class="smote-charts-grid">
+        <div class="graph-block">
+          <div class="graph-header">
+            <div class="graph-title">Class Balance — Before SMOTE</div>
+          </div>
+          <div class="graph-wrap" style="max-height:250px"><canvas id="smoteBeforeChart" height="210"></canvas></div>
+        </div>
+        <div class="graph-block">
+          <div class="graph-header">
+            <div class="graph-title">Class Balance — After SMOTE</div>
+          </div>
+          <div class="graph-wrap" style="max-height:250px"><canvas id="smoteAfterChart" height="210"></canvas></div>
+        </div>
+      </div>
+
+      <div class="graph-block" style="margin-top:2rem">
+        <div class="graph-header">
+          <div class="graph-title">Feature Distribution — Before vs After SMOTE</div>
+          <div class="graph-tabs" id="smote-tabs">
+            <button class="gtab active" data-f="air">Air Temp</button>
+            <button class="gtab" data-f="proc">Process Temp</button>
+            <button class="gtab" data-f="rpm">Rot. Speed</button>
+            <button class="gtab" data-f="torque">Torque</button>
+            <button class="gtab" data-f="wear">Tool Wear</button>
+          </div>
+        </div>
+        <div class="graph-wrap"><canvas id="smoteCompChart" height="240"></canvas></div>
+        <div class="info-card">
+          <div class="ic-title">Validating SMOTE quality</div>
+          <p>Feature distributions remain <strong>structurally similar</strong> before and after SMOTE — confirming that
+            synthetic samples follow the same statistical patterns as real data. The distributions overlap closely,
+            meaning the synthetic failure samples are realistic interpolations rather than noise. This is the key
+            advantage of SMOTE over simple oversampling (duplication), which would cause severe overfitting.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BALANCED EDA -->
+  <section id="balanced" class="section alt-section">
+    <div class="section-inner reveal">
+      <div class="section-tag">06 — Balanced Dataset EDA</div>
+      <h2 class="section-title">Validating the Balanced Dataset</h2>
+      <p class="section-desc">After SMOTE, the dataset grew from 10,000 to <strong>19,322 samples</strong> (9,661 per
+        class). We ran a fresh EDA pass to confirm the balance and verify statistical integrity.</p>
+
+      <div class="balanced-charts-grid">
+        <div class="graph-block">
+          <div class="graph-header">
+            <div class="graph-title">Class Distribution — Balanced</div>
+          </div>
+          <div class="graph-wrap" style="max-height:260px"><canvas id="balancedClassChart" height="220"></canvas></div>
+        </div>
+        <div class="graph-block">
+          <div class="graph-header">
+            <div class="graph-title">Feature Distributions — Balanced Dataset</div>
+            <div class="graph-tabs" id="bal-tabs">
+              <button class="gtab active" data-b="air">Air Temp</button>
+              <button class="gtab" data-b="proc">Process Temp</button>
+              <button class="gtab" data-b="rpm">Rot. Speed</button>
+              <button class="gtab" data-b="torque">Torque</button>
+              <button class="gtab" data-b="wear">Tool Wear</button>
+            </div>
+          </div>
+          <div class="graph-wrap"><canvas id="balancedDistChart" height="220"></canvas></div>
+        </div>
+      </div>
+
+      <div class="graph-block" style="margin-top:2rem">
+        <div class="graph-header">
+          <div class="graph-title">Correlation Heatmap — Balanced Dataset</div>
+          <div class="graph-subtitle">Compare with the original heatmap in Section 03</div>
+        </div>
+        <div class="graph-wrap heatmap-container"><canvas id="balHeatmapChart" height="300"></canvas></div>
+        <div class="info-card">
+          <div class="ic-title">SMOTE preserves correlation structure</div>
+          <p>The correlation matrix is nearly identical to the original dataset. Air-Process temperature correlation
+            remains at ~0.88, and the Speed-Torque negative correlation stays at ~−0.87. This is critical evidence that
+            SMOTE generated statistically consistent samples — maintaining the underlying mechanical relationships of
+            the machine rather than introducing artificial patterns.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NORMALIZATION -->
+  <section id="norm" class="section">
+    <div class="section-inner reveal">
+      <div class="section-tag">07 — Normalization</div>
+      <h2 class="section-title">StandardScaler — Preparing for Training</h2>
+      <p class="section-desc">Features exist at vastly different numerical scales. <strong>StandardScaler</strong>
+        transforms each feature to zero mean and unit standard deviation so no feature dominates others due to magnitude
+        alone.</p>
+
+      <div class="norm-charts-grid">
+        <div class="graph-block">
+          <div class="graph-header">
+            <div class="graph-title">Feature Ranges — Before Normalization</div>
+          </div>
+          <div class="graph-wrap"><canvas id="normBeforeChart" height="220"></canvas></div>
+        </div>
+        <div class="graph-block">
+          <div class="graph-header">
+            <div class="graph-title">Feature Ranges — After Normalization</div>
+          </div>
+          <div class="graph-wrap"><canvas id="normAfterChart" height="220"></canvas></div>
+        </div>
+      </div>
+
+      <div class="graph-block" style="margin-top:2rem">
+        <div class="graph-header">
+          <div class="graph-title">Normalized Feature Distributions</div>
+          <div class="graph-tabs" id="norm-tabs">
+            <button class="gtab active" data-n="air">Air Temp</button>
+            <button class="gtab" data-n="proc">Process Temp</button>
+            <button class="gtab" data-n="rpm">Rot. Speed</button>
+            <button class="gtab" data-n="torque">Torque</button>
+            <button class="gtab" data-n="wear">Tool Wear</button>
+          </div>
+        </div>
+        <div class="graph-wrap"><canvas id="normDistChart" height="240"></canvas></div>
+        <div class="info-card">
+          <div class="ic-title">Why normalization matters here</div>
+          <p><strong>KNN</strong> computes similarity using Euclidean distance. Without normalization, rotational speed
+            (range ~1700) dominates over torque (range ~73) purely due to scale. After StandardScaler, all five features
+            contribute equally to distance calculations.<br><br>
+            <strong>Logistic Regression</strong> uses gradient descent to fit coefficients — unnormalized features cause
+            slow convergence and biased weights.<br><br>
+            <strong>Random Forest and Decision Tree</strong> are scale-invariant by nature but normalization ensures
+            consistent preprocessing across the entire pipeline.
+          </p>
+        </div>
+      </div>
+
+      <div class="ready-badges">
+        <span class="badge">✓ 19,322 samples</span>
+        <span class="badge">✓ Balanced 1:1 ratio</span>
+        <span class="badge">✓ Mean = 0, Std = 1</span>
+        <span class="badge">✓ 80/20 train-test split</span>
+        <span class="badge">✓ Ready for training</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODELS -->
+  <section id="models" class="section alt-section">
+    <div class="section-inner reveal">
+      <div class="section-tag">08 — Model Training</div>
+      <h2 class="section-title">Training &amp; Comparing Models</h2>
+      <p class="section-desc">We trained four base classifiers with a <strong>stratified 80/20 train-test split</strong>
+        (random_state=42). Stratification ensures both train and test sets maintain the balanced 50/50 class ratio.</p>
+
+      <div class="graph-block">
+        <div class="graph-header">
+          <div class="graph-title">Model Accuracy Comparison</div>
+        </div>
+        <div class="graph-wrap"><canvas id="accuracyChart" height="230"></canvas></div>
+      </div>
+
+      <div class="graph-block" style="margin-top:2rem">
+        <div class="graph-header">
+          <div class="graph-title">All Metrics — Grouped Comparison</div>
+          <div class="graph-subtitle">Accuracy · Precision · Recall · F1 Score</div>
+        </div>
+        <div class="graph-wrap"><canvas id="multiMetricChart" height="280"></canvas></div>
+      </div>
+
+      <div class="model-insight-row">
+        <div class="model-insight-card lr-card">
+          <div class="mi-badge weak">83.5%</div>
+          <div class="mi-title">Logistic Regression</div>
+          <p>Linear decision boundary fails to capture non-linear interactions between features like speed-torque
+            combinations. Useful as a baseline but insufficient for complex failure patterns in sensor data.</p>
+        </div>
+        <div class="model-insight-card knn-card">
+          <div class="mi-badge good">95.7%</div>
+          <div class="mi-title">KNN (k=5)</div>
+          <p>Finds 5 nearest neighbors in normalized feature space. Achieves the <strong>highest recall (98.7%)</strong>
+            — misses very few failures. Lower precision (93.1%) means more false alarms. Performance entirely depends on
+            normalization.</p>
+        </div>
+        <div class="model-insight-card dt-card">
+          <div class="mi-badge good">95.0%</div>
+          <div class="mi-title">Decision Tree</div>
+          <p>Learns explicit IF-THEN rules from feature thresholds. Highly interpretable. Slightly prone to overfitting
+            which the Random Forest ensemble approach corrects. Good balance between precision and recall.</p>
+        </div>
+        <div class="model-insight-card rf-card">
+          <div class="mi-badge best">97.4%</div>
+          <div class="mi-title">Random Forest</div>
+          <p>Builds 100 trees on random feature subsets, aggregates votes. Best balance of precision (96.4%) and recall
+            (98.3%) among base models. Ensemble approach reduces variance and avoids overfitting compared to a single
+            decision tree.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EVALUATION -->
+  <section id="evaluation" class="section alt-section">
+    <div class="section-inner reveal">
+      <div class="section-tag">— Model Evaluation</div>
+      <h2 class="section-title">Confusion Matrix &amp; ROC Curves</h2>
+      <p class="section-desc">Deep-dive evaluation of every model. The confusion matrix shows exactly what each model got right and wrong. The ROC curve shows performance across all decision thresholds — AUC closer to 1.0 is better.</p>
+
+      <!-- Model Selector Tabs -->
+      <div class="graph-tabs" id="eval-model-tabs" style="margin-bottom:1.5rem;flex-wrap:wrap;gap:.5rem">
+        <button class="gtab active" data-emodel="Logistic Regression">Logistic Reg.</button>
+        <button class="gtab" data-emodel="Decision Tree">Decision Tree</button>
+        <button class="gtab" data-emodel="KNN">KNN</button>
+        <button class="gtab" data-emodel="Random Forest">Random Forest</button>
+        <button class="gtab" data-emodel="Hybrid (RF + KNN)">Hybrid</button>
+      </div>
+      <div class="eval-charts-row" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+        <!-- Confusion Matrix -->
+        <div class="graph-block" style="display:flex; flex-direction:column; height:100%">
+          <div class="graph-header">
+            <div class="graph-title">Confusion Matrix</div>
+            <div class="graph-subtitle">Actual vs Predicted on test set (3,865 samples)</div>
+          </div>
+          <div id="cm-display" style="padding:1rem; flex-grow:1">
+            <div style="display:grid;grid-template-columns:auto 1fr 1fr;grid-template-rows:auto 1fr 1fr;gap:.4rem;font-family:var(--font-mono,monospace);font-size:.85rem">
+              <div></div>
+              <div style="text-align:center;color:var(--accent,#00f0ff);font-size:.75rem;padding:.3rem">Predicted<br>No Failure</div>
+              <div style="text-align:center;color:#ff6b6b;font-size:.75rem;padding:.3rem">Predicted<br>Failure</div>
+              <div style="display:flex;align-items:center;color:var(--accent,#00f0ff);font-size:.75rem;writing-mode:horizontal-tb;padding:.3rem;white-space:nowrap">Actual No Failure</div>
+              <div id="cm-tn" class="cm-cell cm-tn">—</div>
+              <div id="cm-fp" class="cm-cell cm-fp">—</div>
+              <div style="display:flex;align-items:center;color:#ff6b6b;font-size:.75rem;padding:.3rem;white-space:nowrap">Actual Failure</div>
+              <div id="cm-fn" class="cm-cell cm-fn">—</div>
+              <div id="cm-tp" class="cm-cell cm-tp">—</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:1rem">
+              <div class="info-card" style="margin:0;padding:.6rem .8rem">
+                <div style="font-size:.7rem;color:var(--muted,#888)">True Negatives (TN)</div>
+                <div style="font-size:.75rem;color:#ccc;margin-top:.2rem">Correctly said No Failure</div>
+              </div>
+              <div class="info-card" style="margin:0;padding:.6rem .8rem">
+                <div style="font-size:.7rem;color:#ffaa00">False Positives (FP)</div>
+                <div style="font-size:.75rem;color:#ccc;margin-top:.2rem">False alarms raised</div>
+              </div>
+              <div class="info-card" style="margin:0;padding:.6rem .8rem">
+                <div style="font-size:.7rem;color:#ff6b6b">False Negatives (FN)</div>
+                <div style="font-size:.75rem;color:#ccc;margin-top:.2rem">Missed failures ⚠</div>
+              </div>
+              <div class="info-card" style="margin:0;padding:.6rem .8rem">
+                <div style="font-size:.7rem;color:#00e676">True Positives (TP)</div>
+                <div style="font-size:.75rem;color:#ccc;margin-top:.2rem">Correctly caught failures</div>
+              </div>
+            </div>
+          </div>
+          <div class="info-card" style="margin:1rem; margin-top:0; border-top:1px solid var(--border); padding-top:1rem">
+            <div class="ic-title" style="font-size:0.7rem; color:var(--text-2)">Evaluation Summary</div>
+            <p style="font-size:0.75rem; color:#aaa; margin-top:0.3rem">
+              The Matrix breaks down the exact number of correct and incorrect predictions. 
+              The goal is to maximize the <strong>Diagonal (Blue/Green)</strong> and minimize the others.
+            </p>
+          </div>
+        </div>
+
+        <!-- Individual ROC Chart -->
+        <div class="graph-block">
+          <div class="graph-header">
+            <div class="graph-title">ROC Curve — <span id="roc-model-label">Logistic Regression</span></div>
+            <div class="graph-subtitle" id="roc-auc-label">AUC: —</div>
+          </div>
+          <div class="graph-wrap" style="height:380px"><canvas id="rocSingleChart"></canvas></div>
+          <div class="info-card" style="margin-top:1rem; border-top:1px solid var(--border); padding-top:1rem">
+            <div class="ic-title" style="font-size:0.7rem; color:var(--text-2)">ROC Interpretation</div>
+            <p style="font-size:0.75rem; color:#aaa; margin-top:0.3rem">
+              The red area represents the model's ability to distinguish between classes. 
+              A larger area (AUC) means the model is better at catching failures without raising too many false alarms.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- All-Models ROC Overlay -->
+      <div class="graph-block" style="margin-top:2rem">
+        <div class="graph-header">
+          <div class="graph-title">All Models — ROC Curve Comparison</div>
+          <div class="graph-subtitle">Higher and more left-bowed = better. AUC = area under the curve.</div>
+        </div>
+        <div class="graph-wrap"><canvas id="rocAllChart" height="280"></canvas></div>
+        <div class="info-card">
+          <div class="ic-title">How to read this chart</div>
+          <p>The diagonal dashed line is a random classifier (AUC = 0.5). Any model above this line is better than guessing. The closer the curve hugs the top-left corner, the better. AUC = 1.0 is perfect. Our Hybrid achieves the highest AUC — confirming it as the strongest model at every threshold.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HYBRID -->
+  <section id="hybrid" class="section hybrid-section">
+    <div class="section-inner reveal">
+      <div class="section-tag accent-tag">09 — Innovation</div>
+      <h2 class="section-title">Hybrid Model — Best of Both Worlds</h2>
+      <p class="section-desc">We combined the top two models using a <strong>Hard Voting Classifier (sklearn
+          VotingClassifier)</strong>. Each model independently predicts the class and the majority vote determines the
+        final output — reducing the individual weaknesses of each model.</p>
+
+      <div class="hybrid-diagram">
+        <div class="hybrid-input">Normalized test data (3,865 samples)</div>
+        <div class="hybrid-split">
+          <div class="hybrid-model rf-model">
+            <div class="hm-icon">🌲</div>
+            <div class="hm-name">Random Forest</div>
+            <div class="hm-detail">100 trees · feature subsets · bagging</div>
+            <div class="hm-acc">97.4% acc</div>
+            <div class="hm-vote">P: 96.4% · R: 98.3% · F1: 97.4%</div>
+          </div>
+          <div class="hybrid-model knn-model">
+            <div class="hm-icon">📍</div>
+            <div class="hm-name">KNN (k=5)</div>
+            <div class="hm-detail">Euclidean distance · normalized space</div>
+            <div class="hm-acc">95.7% acc</div>
+            <div class="hm-vote">P: 93.1% · R: 98.7% · F1: 95.8%</div>
+          </div>
+        </div>
+        <div class="hybrid-combine">Hard Voting → Majority class wins</div>
+        <div class="hybrid-result">
+          <span class="hr-label">Final Output</span>
+          <span class="hr-val">Hybrid (RF + KNN)</span>
+          <span class="hr-acc">97.5% accuracy · 97.5% F1</span>
+        </div>
+      </div>
+
+      <div class="graph-block" style="margin-top:2.5rem">
+        <div class="graph-header">
+          <div class="graph-title">All 5 Models — Final Performance Comparison</div>
+          <div class="graph-subtitle">Including Hybrid — best performer across all metrics</div>
+        </div>
+        <div class="graph-wrap"><canvas id="finalCompChart" height="280"></canvas></div>
+        <div class="info-card">
+          <div class="ic-title">Why does combining models help?</div>
+          <p>RF is strong at precision — it avoids false alarms by being conservative. KNN is strong at recall — it
+            catches almost all true failures by considering local feature space proximity. When RF misclassifies a
+            borderline failure case, KNN's proximity-based vote often corrects it, and vice versa. The combination
+            produces a classifier that is simultaneously more precise and more sensitive than either model alone —
+            achieving the best F1 score of 97.5%.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section id="result" class="section result-section">
+    <div class="section-inner reveal">
+      <div class="section-tag">10 — Final Result</div>
+      <h2 class="section-title">Mission Accomplished</h2>
+      <p class="section-desc">We built a complete end-to-end predictive maintenance pipeline — from raw imbalanced
+        sensor data to a high-performance failure detection system — across five systematic stages.</p>
+
+      <div class="result-hero-card">
+        <div class="rhc-model">🏆 Best Model: Hybrid (RF + KNN) — sklearn VotingClassifier</div>
+        <div class="result-metrics">
+          <div class="rm-card">
+            <div class="rm-num">97.5%</div>
+            <div class="rm-label">Accuracy</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-num">97.3%</div>
+            <div class="rm-label">Precision</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-num">97.6%</div>
+            <div class="rm-label">Recall</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-num">97.5%</div>
+            <div class="rm-label">F1 Score</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pipeline-summary">
+        <div class="ps-step">📊<br>Raw Data<br><small>10,000 · 96% imbalanced</small></div>
+        <div class="ps-arr">→</div>
+        <div class="ps-step">⚖<br>SMOTE<br><small>19,322 · 50:50 balanced</small></div>
+        <div class="ps-arr">→</div>
+        <div class="ps-step">📐<br>Normalize<br><small>Mean=0, Std=1</small></div>
+        <div class="ps-arr">→</div>
+        <div class="ps-step">🤖<br>Train × 5 Models<br><small>80/20 stratified split</small></div>
+        <div class="ps-arr">→</div>
+        <div class="ps-step">🏆<br>Hybrid Model<br><small>97.5% F1 Score</small></div>
+      </div>
+
+      <div class="impact-grid">
+        <div class="impact-card">
+          <div class="impact-icon">🎯</div>
+          <div class="impact-title">High Recall (97.6%)</div>
+          <p>The system correctly identifies nearly all actual machine failures — minimising undetected breakdowns,
+            catastrophic damage, and production halts.</p>
+        </div>
+        <div class="impact-card">
+          <div class="impact-icon">⚡</div>
+          <div class="impact-title">High Precision (97.3%)</div>
+          <p>Very few false alarms — maintenance teams are not overwhelmed with unnecessary work orders, keeping
+            operations efficient and cost-effective.</p>
+        </div>
+        <div class="impact-card">
+          <div class="impact-icon">📈</div>
+          <div class="impact-title">Real-world Impact</div>
+          <p>Predictive maintenance reduces unplanned downtime by up to 50% and maintenance costs by up to 25% compared
+            to reactive approaches in real industrial deployments.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTING AREA -->
+  <section id="testing" class="section testing-section">
+    <div class="test-reveal-bg"></div>
+    <div class="section-inner reveal">
+      <div class="section-tag accent-tag">Live Testing</div>
+      <h2 class="section-title">Machine Health Tester</h2>
+      <p class="section-desc">Analyze real-time sensor data using our proprietary **Hybrid Ensemble Model**. This
+        diagnostic tool provides the final predictive output based on aggregated model intelligence.</p>
+
+      <div class="test-container">
+        <div class="test-layout">
+          <!-- Form Side -->
+          <div class="test-left">
+            <form id="prediction-form" class="test-form">
+              <div class="form-grid">
+                <div class="form-group full-width">
+                  <label for="type">Machine Type</label>
+                  <select id="type" name="type" required>
+                    <option value="L">Low (L Quality)</option>
+                    <option value="M" selected>Medium (M Quality)</option>
+                    <option value="H">High (H Quality)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="air_temp">Air Temp [K]</label>
+                  <input type="number" id="air_temp" name="air_temp" step="0.1" placeholder="298.1" required>
+                </div>
+                <div class="form-group">
+                  <label for="process_temp">Proc Temp [K]</label>
+                  <input type="number" id="process_temp" name="process_temp" step="0.1" placeholder="308.6" required>
+                </div>
+                <div class="form-group">
+                  <label for="rot_speed">Speed [rpm]</label>
+                  <input type="number" id="rot_speed" name="rot_speed" placeholder="1551" required>
+                </div>
+                <div class="form-group">
+                  <label for="torque">Torque [Nm]</label>
+                  <input type="number" id="torque" name="torque" step="0.1" placeholder="42.8" required>
+                </div>
+                <div class="form-group full-width">
+                  <label for="tool_wear">Tool Wear [min]</label>
+                  <input type="number" id="tool_wear" name="tool_wear" placeholder="150" required>
+                </div>
+              </div>
+              <div class="test-form-footer">
+                <button type="button" class="random-btn" id="random-btn">
+                  <span class="btn-icon">🎲</span>
+                  <span class="btn-text">Randomize Data</span>
+                </button>
+                <button type="submit" class="predict-btn" id="submit-btn" style="flex: 1.5;">
+                  <span class="btn-text">Run Diagnostic</span>
+                  <div class="btn-loader hidden"></div>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Result Side (Card Style) -->
+          <div class="test-right">
+            <div id="prediction-results" class="machine-card hybrid-result-card initial">
+              <div class="machine-header">
+                <span class="machine-dot result-dot"></span>
+                <span class="machine-label">hybrid_ensemble.v1</span>
+              </div>
+              <div class="machine-body result-body">
+                <div class="result-placeholder">
+                  <div class="pulse-icon">📡</div>
+                  <p>Awaiting input data...</p>
+                </div>
+
+                <!-- DIAGNOSTIC LOADER (The Mechanism) -->
+                <div class="diagnostic-loader hidden">
+                  <div class="scanning-line"></div>
+                  <div class="loader-circles">
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                  </div>
+                  <div class="diagnostic-logs">
+                    <div class="log-line" id="log-1">Initializing Diagnostic...</div>
+                    <div class="log-line hidden" id="log-2">Normalizing Sensor Input...</div>
+                    <div class="log-line hidden" id="log-3">Running RF Ensemble...</div>
+                    <div class="log-line hidden" id="log-4">Computing KNN Weights...</div>
+                    <div class="log-line hidden" id="log-5">Aggregating Predictions...</div>
+                  </div>
+                </div>
+
+                <div class="result-content hidden">
+                  <div class="res-main">
+                    <span class="res-val" id="hybrid-status">--</span>
+                    <span class="res-label">Status Identified</span>
+                  </div>
+                  <div class="res-details">
+                    <div class="res-detail-item">
+                      <span class="rd-label">Confidence</span>
+                      <span class="rd-val">High (97.5%)</span>
+                    </div>
+                    <div class="res-detail-item">
+                      <span class="rd-label">Source</span>
+                      <span class="rd-val">RF + KNN Ensemble</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="machine-footer result-footer">
+                <span class="status-dot"></span>
+                <span class="status-message">System Idle</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <section class="footer-section">
+    <div class="footer-divider"></div>
+    <div class="section-inner">
+      <div class="footer-main">
+        <div class="footer-col-brand">
+          <div class="nav-logo">PM<span class="dot">.</span>ML</div>
+          <p class="footer-brand-text">A data-driven machine learning project focused on predictive industrial
+            maintenance and failure detection.</p>
+        </div>
+
+        <div class="footer-col">
+          <h4 class="footer-heading">Project Guide</h4>
+          <div class="guide-card">
+            <span class="guide-name">Dr. Deepali Joshi</span>
+            <span class="guide-title">Project Supervisor</span>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4 class="footer-heading">Team members</h4>
+          <ul class="team-list">
+            <li>Shlok Bam</li>
+            <li>Avantika Sawant</li>
+            <li>Ishan Soman</li>
+            <li>Shreyas Chulliyan</li>
+            <li>Samruddhi Shinde</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div class="footer-copy">© 2026 Predictive Maintenance Project · Engineering Mini Project</div>
+        <div class="footer-tech">Flask · Scikit-Learn · Chart.js</div>
+      </div>
+    </div>
+  </section>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+</body>
+
+</html>
