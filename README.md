@@ -27,10 +27,6 @@ The project is divided into **two phases**:
 
 ---
 
----
-
----
-
 # 📊 Project Workflow
 
 <p align="center">
