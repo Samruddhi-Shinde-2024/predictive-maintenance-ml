@@ -34,7 +34,7 @@ The project is divided into **two phases**:
 # 📊 Project Workflow
 
 <p align="center">
-  <img src="assets/workflow.png" alt="Project Workflow" width="100%">
+  <img src="assets/workflow1.png" alt="Project Workflow" width="100%">
 </p>
 
 The project follows a complete machine learning pipeline, beginning with raw sensor data preprocessing, followed by class balancing using SMOTE, feature normalization, model training, evaluation, and deployment through a Flask web application.
